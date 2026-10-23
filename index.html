@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f3ed">
+  <meta name="description" content="Studio Mariana — uma experiência de beleza feita com cuidado. Projeto demonstrativo com agendamento online.">
+  <meta property="og:title" content="Studio Mariana | Sua beleza, no seu tempo">
+  <meta property="og:description" content="Cuidado, técnica e atenção a cada detalhe.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/images/studio-hero.jpg">
+  <title>Studio Mariana | Sua beleza, no seu tempo</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header" data-header>
+    <a class="brand" href="#inicio" aria-label="Studio Mariana — início">Studio <span>Mariana</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-principal"><span></span><span></span><span class="sr-only">Abrir menu</span></button>
+    <nav id="menu-principal" class="site-nav" aria-label="Navegação principal">
+      <a href="#sobre">O studio</a><a href="#servicos">Serviços</a><a href="#experiencia">Experiência</a><a href="#galeria">Galeria</a>
+      <a class="button button--small" href="#agendamento">Agendar horário</a>
+    </nav>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="inicio" aria-labelledby="hero-title">
+      <img class="hero__image" src="/assets/images/studio-hero.jpg" width="1600" height="1024" alt="Mulher com cabelos longos e ondulados em um salão de tons claros">
+      <div class="hero__veil"></div>
+      <div class="hero__content reveal">
+        <p class="eyebrow">Studio de beleza · Projeto demonstrativo</p>
+        <h1 id="hero-title">Sua beleza,<br><em>no seu tempo.</em></h1>
+        <p class="hero__lede">Um espaço pensado para valorizar sua essência, com cuidado, técnica e atenção a cada detalhe.</p>
+        <div class="hero__actions"><a class="button" href="#agendamento">Agendar meu horário</a><a class="text-link" href="#servicos">Conhecer os serviços <span aria-hidden="true">↘</span></a></div>
+      </div>
+      <p class="hero__note">Imagens ilustrativas geradas para este projeto.</p>
+    </section>
+
+    <section class="section about" id="sobre" aria-labelledby="about-title">
+      <div class="section-number" aria-hidden="true">01</div>
+      <div class="about__heading reveal"><p class="eyebrow">Sobre o studio</p><h2 id="about-title">Beleza que começa<br><em>no cuidado.</em></h2></div>
+      <div class="about__copy reveal"><p>Cada pessoa traz uma história, uma rotina e um jeito único de se sentir bonita. Por isso, o atendimento começa pela escuta.</p><p>Da escolha do serviço ao toque final, a experiência foi imaginada para ser tranquila, atenta e verdadeiramente sua.</p></div>
+    </section>
+
+    <section class="section services" id="servicos" aria-labelledby="services-title">
+      <div class="section-intro reveal"><div><p class="eyebrow">Serviços essenciais</p><h2 id="services-title">Escolha seu<br><em>momento.</em></h2></div><p>Valores e serviços demonstrativos para apresentar o fluxo de agendamento.</p></div>
+      <div class="service-list" id="service-list">
+        <article class="service reveal" data-service-id="corte-feminino"><span class="service__index">01</span><div><h3>Corte feminino</h3><p>Forma, leveza e movimento pensados para você.</p></div><p class="service__meta">60 min <span>R$ 70</span></p><a href="#agendamento" class="service__book" data-book-service="corte-feminino">Agendar <span aria-hidden="true">↗</span></a></article>
+        <article class="service reveal" data-service-id="escova"><span class="service__index">02</span><div><h3>Escova</h3><p>Finalização polida, com brilho e movimento natural.</p></div><p class="service__meta">45 min <span>R$ 50</span></p><a href="#agendamento" class="service__book" data-book-service="escova">Agendar <span aria-hidden="true">↗</span></a></article>
+        <article class="service reveal" data-service-id="coloracao"><span class="service__index">03</span><div><h3>Coloração</h3><p>Cor e dimensão com respeito à identidade dos seus fios.</p></div><p class="service__meta">120 min <span>R$ 180</span></p><a href="#agendamento" class="service__book" data-book-service="coloracao">Agendar <span aria-hidden="true">↗</span></a></article>
+      </div>
+    </section>
+
+    <section class="experience" id="experiencia" aria-labelledby="experience-title">
+      <div class="experience__image reveal"><img src="/assets/images/studio-cuidado.jpg" width="960" height="1440" loading="lazy" alt="Profissional arrumando cuidadosamente os cabelos ondulados de uma cliente"></div>
+      <div class="experience__content reveal"><p class="eyebrow">A experiência</p><h2 id="experience-title">Mais que um serviço.<br><em>Uma pausa para você.</em></h2><p>Atendimento sem pressa, conversa honesta e escolhas que respeitam o seu estilo. Aqui, técnica e sensibilidade caminham juntas.</p><ol><li><span>01</span><div><strong>Escuta</strong><p>Entendemos o que você deseja e o que faz sentido para sua rotina.</p></div></li><li><span>02</span><div><strong>Cuidado</strong><p>Cada etapa é conduzida com atenção ao seu conforto e aos seus fios.</p></div></li><li><span>03</span><div><strong>Expressão</strong><p>O resultado valoriza quem você é — sem fórmulas prontas.</p></div></li></ol></div>
+    </section>
+
+    <section class="section gallery" id="galeria" aria-labelledby="gallery-title">
+      <div class="gallery__title reveal"><p class="eyebrow">Inspirações</p><h2 id="gallery-title">Textura, movimento<br><em>e naturalidade.</em></h2><p>Imagens demonstrativas produzidas para a apresentação deste projeto fictício.</p></div>
+      <figure class="gallery__large reveal"><img src="/assets/images/studio-ondas.jpg" width="960" height="1440" loading="lazy" alt="Vista posterior de cabelos castanhos ondulados"><figcaption>Ondas naturais · imagem ilustrativa</figcaption></figure>
+      <figure class="gallery__small reveal"><img src="/assets/images/studio-cuidado.jpg" width="960" height="1440" loading="lazy" alt="Detalhe do cuidado durante a finalização do cabelo"><figcaption>Cuidado em cada gesto · imagem ilustrativa</figcaption></figure>
+    </section>
+
+    <section class="booking" id="agendamento" aria-labelledby="booking-title">
+      <div class="booking__intro reveal"><p class="eyebrow">Agendamento online</p><h2 id="booking-title">Reserve seu<br><em>momento.</em></h2><p>Escolha um serviço, encontre um horário e confira tudo antes de confirmar.</p><div class="booking__notice"><span aria-hidden="true">i</span><p>Este é um sistema demonstrativo. Não há atendimento real, pagamento ou envio de WhatsApp.</p></div></div>
+      <div class="booking__panel reveal" data-booking-app>
+        <div class="booking__progress" aria-label="Progresso do agendamento"><span class="is-active">01 Serviço</span><span>02 Horário</span><span>03 Seus dados</span><span>04 Confirmar</span></div>
+        <div id="booking-status" class="status" role="status" aria-live="polite"></div>
+        <form id="booking-form" novalidate>
+          <fieldset class="booking-step" data-step="1"><legend>Qual serviço você deseja?</legend><div id="booking-services" class="booking-services" aria-describedby="service-help"></div><p id="service-help" class="field-help">A duração define quais horários estarão disponíveis.</p><div class="step-actions"><button class="button" type="button" data-next>Escolher data</button></div></fieldset>
+          <fieldset class="booking-step" data-step="2" hidden><legend>Quando fica melhor?</legend><label class="field"><span>Data</span><input id="booking-date" name="date" type="date" required></label><p class="field-help">Atendimentos de segunda a sábado, das 9h às 12h e das 13h às 18h.</p><div id="slots" class="slots" aria-live="polite"></div><div class="step-actions"><button class="text-button" type="button" data-prev>Voltar</button><button class="button" type="button" data-next>Continuar</button></div></fieldset>
+          <fieldset class="booking-step" data-step="3" hidden><legend>Como podemos chamar você?</legend><label class="field"><span>Nome</span><input id="customer-name" name="customerName" type="text" autocomplete="name" maxlength="80" required placeholder="Seu nome"></label><label class="field"><span>Telefone</span><input id="customer-phone" name="customerPhone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" required placeholder="(00) 00000-0000"></label><p class="field-help">Usado apenas para identificar esta reserva demonstrativa.</p><div class="step-actions"><button class="text-button" type="button" data-prev>Voltar</button><button class="button" type="button" data-next>Revisar reserva</button></div></fieldset>
+          <fieldset class="booking-step" data-step="4" hidden><legend>Confira sua reserva</legend><dl id="booking-summary" class="summary"></dl><label class="consent"><input type="checkbox" id="demo-consent" required><span>Entendo que este é um projeto fictício e não representa um atendimento real.</span></label><div class="step-actions"><button class="text-button" type="button" data-prev>Voltar</button><button class="button" id="confirm-booking" type="submit">Confirmar reserva</button></div></fieldset>
+        </form>
+        <div id="booking-success" class="booking-success" hidden><span class="success-mark" aria-hidden="true">✓</span><p class="eyebrow">Reserva confirmada</p><h3>Seu momento foi reservado.</h3><p id="success-copy"></p><p class="field-help">Confirmação demonstrativa — nenhum atendimento real será realizado.</p><button class="text-button" type="button" id="new-booking">Fazer outro agendamento</button></div>
+      </div>
+    </section>
+
+    <section class="section faq" id="faq" aria-labelledby="faq-title"><div><p class="eyebrow">Dúvidas frequentes</p><h2 id="faq-title">Antes de<br><em>agendar.</em></h2></div><div class="faq__list">
+      <details><summary>Como funciona o agendamento?<span>+</span></summary><p>Escolha o serviço, a data e um horário disponível. Depois, informe seus dados, revise e confirme. A reserva só existe após a confirmação do sistema.</p></details>
+      <details><summary>Posso alterar meu horário?<span>+</span></summary><p>Nesta versão demonstrativa não há área de alteração. Em uma operação real, essa solicitação seria feita pelos canais oficiais do salão.</p></details>
+      <details><summary>Quanto tempo dura cada serviço?<span>+</span></summary><p>Corte: 60 minutos; escova: 45 minutos; coloração: 120 minutos. Os tempos apresentados são demonstrativos.</p></details>
+      <details><summary>Posso conversar antes de reservar?<span>+</span></summary><p>O projeto não divulga um contato fictício. Em uma versão comercial, os canais verificados do estabelecimento apareceriam aqui.</p></details>
+      <details><summary>As informações são demonstrativas?<span>+</span></summary><p>Sim. Nome, marca, serviços, preços, imagens e agenda existem apenas para fins de portfólio.</p></details>
+    </div></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer__brand"><a class="brand brand--light" href="#inicio">Studio <span>Mariana</span></a><p>Beleza feita com tempo, técnica e cuidado.</p></div><nav aria-label="Navegação do rodapé"><a href="#sobre">O studio</a><a href="#servicos">Serviços</a><a href="#agendamento">Agendamento</a><a href="#faq">FAQ</a></nav><div class="footer__info"><p><strong>Horário demonstrativo</strong></p><p>Segunda a sábado<br>9h–12h · 13h–18h</p><p>Sem endereço ou contato real.</p></div><p class="footer__legal">© 2026 Studio Mariana · Projeto fictício de portfólio. Não representa um estabelecimento real.</p></footer>
+</body>
+</html>
