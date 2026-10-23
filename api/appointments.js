@@ -22,7 +22,7 @@ export default async function handler(request, response) {
     if (serviceError) throw serviceError;
     if (!service || !service.active) return json(response, 404, { error: 'Serviço não encontrado ou indisponível.' });
     const { startsAt, endsAt } = validateBookingTime({ date: body.date, time: body.time, durationMinutes: service.duration_minutes });
-    const { data, error } = await supabase.rpc('create_appointment', { p_service_id: service.id, p_customer_name: customerName, p_customer_phone: customerPhone, p_starts_at: startsAt.toISOString() });
+    const { data, error } = await supabase.schema('app_private').rpc('create_appointment', { p_service_id: service.id, p_customer_name: customerName, p_customer_phone: customerPhone, p_starts_at: startsAt.toISOString() });
     if (error) {
       if (error.code === '23P01' || error.message?.includes('APPOINTMENT_CONFLICT')) return json(response, 409, { error: 'Esse horário não está mais disponível.' });
       throw error;

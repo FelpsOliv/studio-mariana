@@ -44,8 +44,9 @@ Sem credenciais válidas, a landing continua visível, mas o painel explica que 
 
 1. Crie um projeto novo no [Supabase](https://supabase.com/dashboard).
 2. Abra **SQL Editor**, cole todo o conteúdo de `supabase/migrations/001_initial_schema.sql` e execute uma vez.
-3. Em **Project Settings → API**, copie a URL do projeto e uma chave secreta (`sb_secret_...`).
-4. Preencha localmente, sem commit:
+3. Nas configurações da API/Data API, adicione `app_private` à lista de **Exposed schemas**. Isso é necessário para o PostgREST localizar as RPCs; não concede acesso por si só, pois a migração mantém `USAGE` e `EXECUTE` exclusivos de `service_role`.
+4. Em **Project Settings → API**, copie a URL do projeto e uma chave secreta (`sb_secret_...`).
+5. Preencha localmente, sem commit:
 
 ```dotenv
 SUPABASE_URL=https://seu-projeto.supabase.co
@@ -56,13 +57,15 @@ A chave secreta moderna é preferível. Projetos antigos podem usar a chave JWT 
 
 ### O que a migração protege
 
-- RLS é ativado e forçado em `services` e `appointments`.
+- RLS é ativado e forçado em `services`, `appointments` e `app_private.rate_limits`.
 - `anon` e `authenticated` não recebem leitura nem escrita direta.
 - Nome e telefone não podem ser consultados por visitantes no Supabase.
-- As RPCs públicas têm execução revogada para visitantes e concedida apenas a `service_role`.
-- `app_private.rate_limits` mantém contadores compartilhados entre instâncias serverless.
+- As RPCs ficam em `app_private`; somente `service_role` recebe `USAGE` no schema e `EXECUTE` nas funções.
+- As funções usam `SECURITY INVOKER`, `search_path` restrito a `pg_catalog` e referências qualificadas. Não há elevação de privilégio via `SECURITY DEFINER`.
+- `app_private.rate_limits` mantém contadores compartilhados entre instâncias serverless e remove registros sem atividade há mais de sete dias.
 - A exclusão GiST usa intervalos `[início, fim)`: reservas consecutivas são válidas, sobrepostas não.
 - Reservas `cancelled` deixam de bloquear a agenda.
+- O limite de 30 dias usa a data civil em `America/Sao_Paulo`, inclusive o 30º dia, além da antecedência mínima de uma hora.
 
 Se o schema for alterado no futuro, crie uma nova migração numerada; não edite uma migração já aplicada em produção.
 
@@ -96,7 +99,7 @@ Os testes de integração ficam automaticamente ignorados sem credenciais. Para 
 npm run test:integration
 ```
 
-Eles validam serviço inexistente/inativo, duas requisições simultâneas disputando o mesmo horário e bloqueio de dados pessoais. Para o teste de cliente público, defina também `SUPABASE_ANON_KEY`. O teste cria e remove registros marcados como teste; não execute contra uma agenda comercial.
+Eles validam serviço inexistente/inativo, duas requisições simultâneas disputando o mesmo horário e bloqueio de dados pessoais. Para o teste de cliente público, defina também `SUPABASE_ANON_KEY`. Para validar um serviço inativo sem ampliar os privilégios da aplicação, crie esse registro pelo SQL Editor em um projeto descartável e informe seu ID em `SUPABASE_INACTIVE_TEST_SERVICE_ID`. O teste de concorrência cria um registro marcado como teste; não execute contra uma agenda comercial.
 
 ## Deploy na Vercel
 

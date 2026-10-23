@@ -33,3 +33,7 @@ test('reserva ativa bloqueia toda sobreposição', () => {
   assert.ok(slots.includes('10:30'));
 });
 test('data mais de 30 dias à frente', () => rejects(valid({ date: '2026-11-22' }), 'TOO_FAR'));
+test('trigésimo dia civil em São Paulo permanece permitido', () => {
+  const result = validateBookingTime(valid({ date: '2026-11-21' }));
+  assert.equal(result.startsAt.toISOString(), '2026-11-21T12:00:00.000Z');
+});
