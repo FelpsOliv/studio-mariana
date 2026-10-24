@@ -25,6 +25,8 @@ export default async function handler(request, response) {
     const { data, error } = await supabase.schema('app_private').rpc('create_appointment', { p_service_id: service.id, p_customer_name: customerName, p_customer_phone: customerPhone, p_starts_at: startsAt.toISOString() });
     if (error) {
       if (error.code === '23P01' || error.message?.includes('APPOINTMENT_CONFLICT')) return json(response, 409, { error: 'Esse horário não está mais disponível.' });
+      if (error.code === 'P0002' || error.message?.includes('SERVICE_NOT_FOUND')) return json(response, 404, { error: 'Serviço não encontrado ou indisponível.' });
+      if (error.code === '22023') return json(response, 400, { error: 'Os dados ou o horário informado não são válidos.' });
       throw error;
     }
     const appointment = Array.isArray(data) ? data[0] : data;

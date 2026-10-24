@@ -49,6 +49,22 @@ alter table public.services force row level security;
 alter table public.appointments enable row level security;
 alter table public.appointments force row level security;
 
+-- Secret keys do Supabase usam service_role, que atualmente possui BYPASSRLS.
+-- Estas policies tornam a intenção explícita e mantêm a operação correta mesmo
+-- se o acesso servidor vier a ser executado sem bypass. Nenhuma policy é criada
+-- para anon ou authenticated.
+create policy studio_services_service_role_select
+  on public.services for select to service_role
+  using (true);
+
+create policy studio_appointments_service_role_select
+  on public.appointments for select to service_role
+  using (true);
+
+create policy studio_appointments_service_role_insert
+  on public.appointments for insert to service_role
+  with check (true);
+
 revoke all on table public.services from public, anon, authenticated;
 revoke all on table public.appointments from public, anon, authenticated;
 revoke all on table public.services from service_role;
@@ -56,6 +72,13 @@ revoke all on table public.appointments from service_role;
 
 create schema if not exists app_private;
 revoke all on schema app_private from public, anon, authenticated;
+
+-- Novos objetos internos não herdam EXECUTE/DML por padrão. Cada acesso de
+-- servidor deve ser concedido explicitamente nesta ou em futuras migrações.
+alter default privileges for role postgres in schema app_private
+  revoke execute on functions from public, anon, authenticated, service_role;
+alter default privileges for role postgres in schema app_private
+  revoke all on tables from public, anon, authenticated, service_role;
 
 create table app_private.rate_limits (
   client_hash text not null check (char_length(client_hash) = 64),
@@ -69,6 +92,11 @@ create index rate_limits_window_started_at_idx on app_private.rate_limits(window
 
 alter table app_private.rate_limits enable row level security;
 alter table app_private.rate_limits force row level security;
+
+create policy studio_rate_limits_service_role_all
+  on app_private.rate_limits for all to service_role
+  using (true)
+  with check (true);
 
 revoke all on table app_private.rate_limits from public, anon, authenticated;
 

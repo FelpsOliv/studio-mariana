@@ -43,10 +43,12 @@ Sem credenciais válidas, a landing continua visível, mas o painel explica que 
 ## Configuração do Supabase
 
 1. Crie um projeto novo no [Supabase](https://supabase.com/dashboard).
-2. Abra **SQL Editor**, cole todo o conteúdo de `supabase/migrations/001_initial_schema.sql` e execute uma vez.
-3. Nas configurações da API/Data API, adicione `app_private` à lista de **Exposed schemas**. Isso é necessário para o PostgREST localizar as RPCs; não concede acesso por si só, pois a migração mantém `USAGE` e `EXECUTE` exclusivos de `service_role`.
-4. Em **Project Settings → API**, copie a URL do projeto e uma chave secreta (`sb_secret_...`).
-5. Preencha localmente, sem commit:
+2. Em um projeto novo, execute no **SQL Editor**, nesta ordem, `supabase/migrations/001_initial_schema.sql` e `supabase/migrations/002_security_compatibility.sql`. A segunda é idempotente e também valida o estado final de segurança.
+3. Em **Project Settings → Data API**, mantenha `public` e adicione `app_private` à lista de **Exposed schemas**. Isso é necessário para o PostgREST localizar as RPCs; não concede acesso por si só, pois a migração mantém `USAGE` e `EXECUTE` exclusivos de `service_role`.
+4. Ainda em **Data API**, desative **Automatically expose new tables** se essa opção estiver habilitada. A migração concede explicitamente somente os privilégios necessários para esta aplicação.
+5. Em **Project Settings → API Keys** (ou no diálogo **Connect**), copie a URL do projeto e crie/copie uma chave secreta (`sb_secret_...`). Não use a chave publicável.
+6. Não crie policies para `anon` ou `authenticated` em nenhuma das três tabelas e não conceda manualmente acesso a `app_private` para esses papéis.
+7. Preencha localmente, sem commit:
 
 ```dotenv
 SUPABASE_URL=https://seu-projeto.supabase.co
@@ -62,12 +64,16 @@ A chave secreta moderna é preferível. Projetos antigos podem usar a chave JWT 
 - Nome e telefone não podem ser consultados por visitantes no Supabase.
 - As RPCs ficam em `app_private`; somente `service_role` recebe `USAGE` no schema e `EXECUTE` nas funções.
 - As funções usam `SECURITY INVOKER`, `search_path` restrito a `pg_catalog` e referências qualificadas. Não há elevação de privilégio via `SECURITY DEFINER`.
-- `app_private.rate_limits` mantém contadores compartilhados entre instâncias serverless e remove registros sem atividade há mais de sete dias.
+- `app_private.rate_limits` mantém contadores compartilhados entre instâncias serverless. A limpeza é coordenada por `app_private.rate_limit_maintenance`: no máximo uma vez por hora, remove até mil contadores sem atividade há mais de sete dias, evitando uma exclusão extensa em toda requisição.
 - A exclusão GiST usa intervalos `[início, fim)`: reservas consecutivas são válidas, sobrepostas não.
 - Reservas `cancelled` deixam de bloquear a agenda.
 - O limite de 30 dias usa a data civil em `America/Sao_Paulo`, inclusive o 30º dia, além da antecedência mínima de uma hora.
 
-Se o schema for alterado no futuro, crie uma nova migração numerada; não edite uma migração já aplicada em produção.
+Se uma versão anterior de `001_initial_schema.sql` já foi aplicada, execute **somente** `002_security_compatibility.sql`. Ela não remove tabelas nem reservas: recompõe policies e grants, atualiza as RPCs privadas, neutraliza a execução das RPCs antigas em `public` e garante a constraint de sobreposição. Se existirem reservas confirmadas historicamente sobrepostas e a constraint estiver ausente, a migração falhará e fará rollback, sem apagar dados; corrija o conflito manualmente antes de tentar novamente.
+
+Depois de aplicar uma migração, não edite a versão já registrada no ambiente. Novas alterações devem receber outro número.
+
+`ALTER DEFAULT PRIVILEGES` em `002` é apenas uma proteção para objetos futuros criados pelo papel `postgres`. Ele não altera permissões de objetos existentes nem alcança objetos criados por outro owner. Por isso a migração revoga explicitamente os objetos atuais; futuras migrações também devem fazer `REVOKE`/`GRANT` explícito para cada nova tabela ou função.
 
 ## APIs
 
@@ -99,7 +105,7 @@ Os testes de integração ficam automaticamente ignorados sem credenciais. Para 
 npm run test:integration
 ```
 
-Eles validam serviço inexistente/inativo, duas requisições simultâneas disputando o mesmo horário e bloqueio de dados pessoais. Para o teste de cliente público, defina também `SUPABASE_ANON_KEY`. Para validar um serviço inativo sem ampliar os privilégios da aplicação, crie esse registro pelo SQL Editor em um projeto descartável e informe seu ID em `SUPABASE_INACTIVE_TEST_SERVICE_ID`. O teste de concorrência cria um registro marcado como teste; não execute contra uma agenda comercial.
+Eles validam os acessos usados pelos três endpoints, rate limiting, serviço inexistente/inativo, duas requisições simultâneas disputando o mesmo horário e bloqueio de dados pessoais/RPCs privadas. Para o teste de cliente público, defina `SUPABASE_PUBLISHABLE_KEY` ou a variável legada `SUPABASE_ANON_KEY`. Para validar um serviço inativo sem ampliar os privilégios da aplicação, crie esse registro pelo SQL Editor em um projeto descartável e informe seu ID em `SUPABASE_INACTIVE_TEST_SERVICE_ID`. O teste de concorrência cria um registro marcado como teste; não execute contra uma agenda comercial.
 
 ## Deploy na Vercel
 
