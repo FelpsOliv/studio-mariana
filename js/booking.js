@@ -1,7 +1,17 @@
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const dateLabel = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'America/Sao_Paulo' });
 
-const state = { services: [], serviceId: '', date: '', time: '', step: 1, submitting: false };
+const state = {
+  services: [],
+  serviceId: '',
+  date: '',
+  time: '',
+  availableSlots: [],
+  step: 1,
+  submitting: false,
+  availabilityRequestId: 0,
+  availabilityController: null
+};
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
@@ -9,6 +19,23 @@ function setStatus(message = '', error = false) {
   const status = $('#booking-status');
   status.textContent = message;
   status.classList.toggle('is-error', error);
+}
+
+function setAvailabilityLoading(loading) {
+  const slots = $('#slots');
+  const continueButton = $('.booking-step[data-step="2"] [data-next]');
+  slots.setAttribute('aria-busy', String(loading));
+  continueButton.disabled = loading;
+}
+
+function invalidateAvailability({ clearSlots = true } = {}) {
+  state.availabilityRequestId += 1;
+  state.availabilityController?.abort();
+  state.availabilityController = null;
+  state.time = '';
+  state.availableSlots = [];
+  setAvailabilityLoading(false);
+  if (clearSlots) $('#slots').innerHTML = '';
 }
 
 function localISODate(date) {
@@ -55,35 +82,63 @@ async function loadServices() {
 
 function selectService(id) {
   if (!state.services.some((service) => service.id === id)) return;
+  const changed = state.serviceId !== id;
   state.serviceId = id;
   renderServices();
+  if (!changed) return;
+  invalidateAvailability();
+  setStatus('');
+  const dateInput = $('#booking-date');
+  if (state.date && dateInput.checkValidity()) loadAvailability();
 }
 
 async function loadAvailability() {
   const slots = $('#slots');
-  state.time = '';
-  if (!state.serviceId || !state.date) { slots.innerHTML = ''; return; }
+  invalidateAvailability({ clearSlots: false });
+  const serviceId = state.serviceId;
+  const date = state.date;
+  const requestId = state.availabilityRequestId;
+  if (!serviceId || !date) { slots.innerHTML = ''; return; }
+
+  const controller = new AbortController();
+  state.availabilityController = controller;
   slots.innerHTML = '<p class="slots__empty">Consultando horários…</p>';
+  setAvailabilityLoading(true);
   setStatus('');
   try {
-    const params = new URLSearchParams({ serviceId: state.serviceId, date: state.date });
-    const response = await fetch(`/api/availability?${params}`, { headers: { Accept: 'application/json' } });
+    const params = new URLSearchParams({ serviceId, date });
+    const response = await fetch(`/api/availability?${params}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
     const body = await response.json().catch(() => ({}));
+    if (requestId !== state.availabilityRequestId) return;
     if (!response.ok) throw new Error(body.error || 'Não foi possível consultar a agenda.');
+    if (body.serviceId !== serviceId || body.date !== date || !Array.isArray(body.slots)) throw new Error('A resposta da agenda não corresponde à seleção atual.');
+    state.availableSlots = body.slots;
     if (!body.slots.length) {
       slots.innerHTML = '<p class="slots__empty">Não há horários disponíveis nesta data. Escolha outro dia.</p>';
       return;
     }
     slots.innerHTML = body.slots.map((time) => `<button class="slot" type="button" data-time="${time}" aria-pressed="false">${time}</button>`).join('');
   } catch (error) {
+    if (error.name === 'AbortError' || requestId !== state.availabilityRequestId) return;
+    state.availableSlots = [];
     slots.innerHTML = '<p class="slots__empty">A agenda não pôde ser carregada.</p>';
     setStatus(error.message, true);
+  } finally {
+    if (requestId === state.availabilityRequestId) {
+      state.availabilityController = null;
+      setAvailabilityLoading(false);
+    }
   }
 }
 
 function validateStep() {
   if (state.step === 1 && !state.serviceId) { setStatus('Escolha um serviço para continuar.', true); return false; }
-  if (state.step === 2 && (!state.date || !state.time)) { setStatus('Escolha uma data e um horário disponível.', true); return false; }
+  if (state.step === 2) {
+    const dateInput = $('#booking-date');
+    if (state.date && !dateInput.checkValidity()) { setStatus('Data ou horário inválido.', true); return false; }
+    if (!state.date || !state.time) { setStatus('Escolha uma data e um horário disponível.', true); return false; }
+    if (!state.availableSlots.includes(state.time)) { state.time = ''; setStatus('Data ou horário inválido.', true); return false; }
+  }
   if (state.step === 3) {
     const name = $('#customer-name');
     const phone = $('#customer-phone');
@@ -141,12 +196,19 @@ async function submitBooking(event) {
 }
 
 function resetBooking() {
-  Object.assign(state, { serviceId: '', date: '', time: '', step: 1, submitting: false });
+  invalidateAvailability();
+  Object.assign(state, { serviceId: '', date: '', time: '', availableSlots: [], step: 1, submitting: false });
   $('#booking-form').reset();
+  $('#customer-phone').setCustomValidity('');
   $('#booking-form').hidden = false;
   $('.booking__progress').hidden = false;
   $('#booking-success').hidden = true;
-  $('#slots').innerHTML = '';
+  $('#booking-summary').innerHTML = '';
+  $('#success-copy').textContent = '';
+  const confirmButton = $('#confirm-booking');
+  confirmButton.disabled = false;
+  confirmButton.textContent = 'Confirmar reserva';
+  setDateBounds();
   renderServices();
   showStep(1);
 }
@@ -156,12 +218,21 @@ export function initBooking() {
   setDateBounds();
   loadServices();
   $('#booking-services').addEventListener('change', (event) => selectService(event.target.value));
-  $('#booking-date').addEventListener('change', (event) => { state.date = event.target.value; loadAvailability(); });
+  $('#booking-date').addEventListener('change', (event) => {
+    const input = event.target;
+    invalidateAvailability();
+    state.date = input.value;
+    if (!state.date) { setStatus(''); return; }
+    if (!input.checkValidity()) { setStatus('Data ou horário inválido.', true); return; }
+    loadAvailability();
+  });
   $('#slots').addEventListener('click', (event) => {
     const button = event.target.closest('[data-time]');
     if (!button) return;
+    if (!state.availableSlots.includes(button.dataset.time)) { setStatus('Data ou horário inválido.', true); return; }
     state.time = button.dataset.time;
     $$('.slot').forEach((slot) => { const selected = slot === button; slot.classList.toggle('is-selected', selected); slot.setAttribute('aria-pressed', String(selected)); });
+    setStatus('');
   });
   $$('[data-next]').forEach((button) => button.addEventListener('click', () => { if (validateStep()) showStep(Math.min(4, state.step + 1)); }));
   $$('[data-prev]').forEach((button) => button.addEventListener('click', () => showStep(Math.max(1, state.step - 1))));
