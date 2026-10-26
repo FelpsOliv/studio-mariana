@@ -132,7 +132,7 @@ begin
     and last_cleanup_at <= pg_catalog.clock_timestamp() - interval '1 hour'
   returning true into v_run_cleanup;
 
-  if pg_catalog.coalesce(v_run_cleanup, false) then
+  if coalesce(v_run_cleanup, false) then
     delete from app_private.rate_limits as stale
     where stale.ctid in (
       select candidate.ctid
